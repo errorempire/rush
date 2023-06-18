@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+# frozen_string_literal: true
+
+require_relative '../lib/rush'
+require 'colorize'
+
+shell = RUSH::Shell.new
+
+loop do
+  git = RUSH::Git.git_info
+  prompt = "#{Dir.pwd}#{git ? " #{git}" : ''}> "
+  print prompt
+
+  command = gets&.chomp
+
+  break if command == 'exit'
+
+  if command.split.first == 'cd'
+    RUSH::Commands.cd(command.split[1])
+    next
+  end
+
+  if shell.binary_exists?(command.split.first)
+    begin
+      output = `#{command}`
+      puts output
+    rescue Errno::ENOENT
+      puts "Command not found: #{command}".colorize(:red)
+    end
+  else
+    puts "Command not found: #{command}".colorize(:red)
+  end
+end
